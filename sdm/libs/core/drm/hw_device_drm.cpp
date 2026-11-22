@@ -711,6 +711,14 @@ DisplayError HWDeviceDRM::PopulateDisplayAttributes(uint32_t index) {
        topology == DRMTopology::QUAD_LM_DSCMERGE || topology == DRMTopology::QUAD_LM_MERGE_DSC);
   display_attributes_[index].clock_khz = mode.clock;
 
+  // Xiaomi panel dtsi reports physical size in 0.1 mm units (e.g. 695 x 1546),
+  // but DRM expects mm. No phone panel is wider than 30 cm, so anything above
+  // that must be in tenths of a millimeter.
+  if (mm_width > 300 || mm_height > 300) {
+    mm_width = (mm_width + 5) / 10;
+    mm_height = (mm_height + 5) / 10;
+  }
+
   // If driver doesn't return panel width/height information, default to 320 dpi
   if (INT(mm_width) <= 0 || INT(mm_height) <= 0) {
     mm_width  = UINT32(((FLOAT(mode.hdisplay) * 25.4f) / 320.0f) + 0.5f);
